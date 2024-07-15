@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive,ref,computed,onMounted } from 'vue'
-export interface IVirtualWaterFallProps {
+ interface IVirtualWaterFallProps {
   gap: number; // 卡片间隔
   column: number; // 瀑布流列数
   bottom:number;
@@ -8,7 +8,7 @@ export interface IVirtualWaterFallProps {
   request?: (page: number, pageSize: number) => Promise<ICardItem[]>; // 数据请求方法
 }
 
-export interface ICardItem {
+interface ICardItem {
   id: number | string;
   url:string;
   width: number;
@@ -18,7 +18,7 @@ export interface ICardItem {
 
 
 
-export interface ICardPos {
+interface ICardPos {
   width: number;
   height: number;
   x:number;
@@ -48,17 +48,6 @@ const scrollState = reactive({
   start:0
 })
 
-interface IColumnQueue {
-  list:IRenderItem[];
-  height:number;
-}
-
-interface IRenderItem {
-  item:ICardItem;
-  y: number;
-  h:number;
-  style: CSSProperties;
-}
 
 const getCardList = async (page: number, pageSize: number) => {
   if (dataState.isFinish) return;
@@ -69,7 +58,7 @@ const getCardList = async (page: number, pageSize: number) => {
     dataState.isFinish = true;
     return;
   }
-  console.log('getCardList',list);
+ 
   dataState.cardList = [...dataState.cardList, ...list];
   computedCardPos(list); // key：根据请求的数据计算卡片位置
   dataState.loading = false
@@ -130,7 +119,7 @@ const computedCardPos = (list: ICardItem[]) =>{
           dataState.columnHeight[minIndex] += cardHeight + props.gap;
         }
   });
-  console.log('dataState.props',dataState.cardPos)
+
 }
 
 const handleScroll = rafThrottle(() => {
