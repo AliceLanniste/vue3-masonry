@@ -2,7 +2,7 @@
 <template>
   <div class="app">
     <div class="container">
-      <masonry :bottom="20" :column="2" :gap="9" :page-size="20" :request="getData">
+      <masonry  :column="2" :gap="9" :page-size="20" :request="getData">
         <template #item="{ item, index }">
           <div
             class="card-box"
