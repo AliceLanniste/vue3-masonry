@@ -1,52 +1,44 @@
+
+<template>
+  <div class="masonry-container" ref="containerRef" @scroll="handleScroll">
+  <div class="masonry-list">
+    <div class="masonry-item" v-for="(item,index) in dataState.cardList"
+     :key="item.id"
+     :style="{
+      width: `${dataState.cardPos[index].width}px`,
+      height: `${dataState.cardPos[index].height}px`,
+       transform: `translate(${dataState.cardPos[index].x}px, ${dataState.cardPos[index].y}px)`,
+     }">
+        <slot name="item" :item="item" :index="index"></slot>
+    </div>
+  </div>
+</div>
+
+
+</template>
+
+
 <script setup lang="ts">
 import { reactive,ref,computed,onMounted } from 'vue'
- interface IVirtualWaterFallProps {
-  gap: number; // 卡片间隔
-  column: number; // 瀑布流列数
-  bottom:number;
-  pageSize: number; // 单次请求数据数量
-  request?: (page: number, pageSize: number) => Promise<ICardItem[]>; // 数据请求方法
-}
+import { IcardViewItem,masonryProps,ICardPos } from "./types";
 
-interface ICardItem {
-  id: number | string;
-  url:string;
-  width: number;
-  height: number;
-  [key: string]: any;
-}
+const containerRef = ref<HTMLDivElement | null>(null);
 
-
-
-interface ICardPos {
-  width: number;
-  height: number;
-  x:number;
-  y:number;
-}
-
-const props = defineProps<IVirtualWaterFallProps>();
-
-defineSlots<{
-  item(props: { item: ICardItem; index: number }): any;
-}>();
+const props = defineProps<masonryProps>();
 const dataState = reactive({
      isFinish:false,
      page:1,
      cardWidth:0,
-     cardList:[] as IcardItem[],
+     cardList:[] as IcardViewItem[],
      cardPos:[] as ICardPos[],
      loading:false,
      columnHeight:  new Array(props.column).fill(0) as number[]
 });
 
+defineSlots<{
+  item(props: { item: IcardViewItem; index: number }): any;
+}>();
 
-const containerRef = ref<HTMLDivElement | null>(null);
-const scrollState = reactive({
-  viewWidth:0,
-  viewHeight: 0,
-  start:0
-})
 
 
 const getCardList = async (page: number, pageSize: number) => {
@@ -66,9 +58,12 @@ const getCardList = async (page: number, pageSize: number) => {
 
 
 const computedWidth = async () =>{
-  const containerWidth = containerRef.value.clientWidth;
-     dataState.cardWidth = (containerWidth - props.gap * (props.column - 1)) / props.column;
+  if(containerRef.value) {
+    const containerWidth = containerRef.value.clientWidth;
+    dataState.cardWidth = (containerWidth - props.gap * (props.column - 1)) / props.column;
     await getCardList(dataState.page, props.pageSize);
+  }
+ 
 
 
 }
@@ -96,7 +91,7 @@ const minColumn = computed(() => {
   };
 });
 
-const computedCardPos = (list: ICardItem[]) =>{
+const   computedCardPos = (list: IcardViewItem[]) =>{
   list.forEach((item,index) => {
       const cardHeight = Math.floor((item.height * dataState.cardWidth) / item.width);
       if(index < props.column && dataState.cardList.length <= props.pageSize) {
@@ -149,23 +144,6 @@ onMounted( () => {
 
 </script>
 
-<template>
-  <div class="masonry-container" ref="containerRef" @scroll="handleScroll">
-  <div class="masonry-list">
-    <div class="masonry-item" v-for="(item,index) in dataState.cardList"
-     :key="item.id"
-     :style="{
-      width: `${dataState.cardPos[index].width}px`,
-      height: `${dataState.cardPos[index].height}px`,
-       transform: `translate(${dataState.cardPos[index].x}px, ${dataState.cardPos[index].y}px)`,
-     }">
-        <slot name="item" :item="item" :index="index"></slot>
-    </div>
-  </div>
-</div>
-
-
-</template>
 
 <style scoped lang="less">
 .masonry {
