@@ -37,12 +37,6 @@ const dataState = reactive({
 
 
 const containerRef = ref<HTMLDivElement | null>(null);
-const scrollState = reactive({
-  viewWidth:0,
-  viewHeight: 0,
-  start:0
-})
-
 
 const getCardList = async (page: number, pageSize: number) => {
   if (dataState.isFinish) return;
@@ -150,7 +144,7 @@ onMounted( () => {
 
 
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .masonry {
   &-container {
     width: 100%;

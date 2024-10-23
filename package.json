@@ -4,12 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite ./examples",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:dev": "vitepress dev doc",
+    "docs:build": "vitepress build doc",
+    "docs:preview": "vitepress preview doc"
   },
   "dependencies": {
+    "sass-embedded": "^1.80.3",
+    "scss": "^0.2.4",
+    "vitepress": "^1.4.1",
     "vue": "^3.5.10"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ export interface IVirtualWaterFallProps {
     column: number; // 瀑布流列数
     bottom:number;
     pageSize: number; // 单次请求数据数量
-    request?: (page: number, pageSize: number) => Promise<cardItem[]>; // 数据请求方法
+    request: (page: number, pageSize: number) => Promise<cardItem[]>; // 数据请求方法
   }
   
 export  interface cardItem {
