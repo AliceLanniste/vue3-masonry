@@ -1,30 +1,17 @@
 {
-  "name": "src",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "vue3-masonry",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite ./examples",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview",
-    "prepare": "husky",
-    "docs:dev": "vitepress dev doc",
-    "docs:build": "vitepress build doc",
-    "docs:preview": "vitepress preview doc"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "sass-embedded": "^1.80.3",
-    "scss": "^0.2.4",
-    "vitepress": "^1.4.1",
-    "vue": "^3.5.10"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
-    "@vitejs/plugin-vue": "^5.1.4",
-    "husky": "^9.1.6",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.8",
-    "vue-tsc": "^2.1.6"
+    "husky": "^9.1.6"
   }
 }

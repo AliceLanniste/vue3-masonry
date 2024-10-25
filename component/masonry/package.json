@@ -1,0 +1,26 @@
+{
+  "name": "masonry",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/masonry.umd.cjs",
+  "module": "./dist/masonry.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --watch",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.9",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "sass-embedded": "^1.80.4",
+    "typescript": "5.4.2",
+    "vite": "^5.4.9",
+    "vite-plugin-dts": "^4.3.0",
+    "vue-tsc": "^2.1.6"
+  }
+}
