@@ -57,7 +57,6 @@ const handleScroll = rafThrottle(() => {
   if (scrollTop + clientHeight >= state.minHeight) {
     !state.isLoading && getCardList(state.page, pageSize);
   }
-  getCardList(state.page,pageSize);
 })
 
 function rafThrottle(fn: Function) {
@@ -82,8 +81,10 @@ const compCardWith = () =>{
 
 function computedCardPos(imgList: cardItem[]): cardItem[] {
   const cardList = imgList.map((item) => {
+      
+    
+      item.height = compCardHeight(item,item.width)
       item.width = state.cardWidth;
-      item.height = compCardHeight(item)
       return item;
    }).map((item, index) => {
       if(index < column) {
@@ -117,8 +118,8 @@ const getShortestColumn =(heightColumns:number[]):{minIndex: number, minHeight: 
     }
 }
 
-const compCardHeight =(card: cardItem) => {
-  const cardHeight = Math.floor((card.height * state.cardWidth) / card.width);
+const compCardHeight =(card: cardItem,width: number) => {
+  const cardHeight = Math.floor((card.height * state.cardWidth) / width);
   return cardHeight;
 }
 
@@ -132,23 +133,24 @@ const init =() =>{
 onMounted(() => init())
 </script>
 
-<style lang="scss" scoped>
-.masonry {
-  &-container {
-    width: 100%;
+<style lang="less" scoped>
+.masonry-container {
+  width: 100%;
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
-  }
-  &-list {
-    position: relative;
-    width: 100%;
-  }
-  &-item {
-    position: absolute;
-    top: 0;
+}
+
+.masonry-list {
+  width: 100%;
+  position: relative;
+}
+
+.masonry-item {
+  position: absolute;
     left: 0;
+    top: 0;
     box-sizing: border-box;
-  }
+    transition: all 0.3s;
 }
 </style>
