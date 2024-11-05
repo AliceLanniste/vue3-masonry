@@ -56,7 +56,7 @@ function addInterval(treeNode: TreeNode, end: number, index: number): boolean {
     let tempNode: ListNode | undefined;
 
     while (node) {
-        if (node.end === end) return false
+      if (node.index === index) return false;
         if (node.end < end) break
         tempNode = node
         node = node.next
@@ -358,16 +358,16 @@ export function createIntervalTree():IntervalTree {
             let tempNode = NULL_NODE
 
             while (topNode !== NULL_NODE) {
-                tempNode = topNode
-                if (start === tempNode.start) return
-                if (start < topNode.start) topNode = topNode.left
-                else topNode = topNode.right
+              tempNode = topNode;
+              if (start === tempNode.start) break;
+              if (start < topNode.start) topNode = topNode.left;
+              else topNode = topNode.right;
             }
 
             if (start === tempNode.start && tempNode !== NULL_NODE) {
                 if (!addInterval(tempNode, end, index)) return;
                 tempNode.end = Math.max(tempNode.end, end);
-                updateMax(topNode);
+                updateMax(tempNode);
                 updateMaxUp(tempNode);
                 indexMap[index] = tempNode;
                 tree.size++;
@@ -379,7 +379,7 @@ export function createIntervalTree():IntervalTree {
                 end,
                 max: end,
                 color: NodeColor.RED,
-                pointer:NULL_NODE,
+                pointer: tempNode,
                 left: NULL_NODE,
                 right: NULL_NODE,
                 list: { index, end, next: null}
@@ -509,38 +509,24 @@ export function createIntervalTree():IntervalTree {
 
 
         search(start:number, end:number, callback:any) {
-            // const stack = [tree.root];
-            // while (stack.length !== 0) {
-            //     const node = stack.pop() as TreeNode;
-            //     if (node == NULL_NODE || stack.push(node.left)) {
-            //         continue;
-            //     }
-            //     if (node.left !== NULL_NODE) stack.push(node.left);
-            //     if (node.right !== NULL_NODE) stack.push(node.right);
-            //     if (node.start <= end && node.end >= start) {
-            //         let curr: ListNode | null = node.list;
-            //         while (curr !== null) {
-            //             if (curr.end >= start) {
-            //                 callback(curr.index,node.start)
-            //             }
-            //             curr = curr.next;
-            //         }
-            //     }
-            // }
-              const stack = [tree.root];
-      while (stack.length !== 0) {
-        const node = stack.pop() as TreeNode;
-        if (node === NULL_NODE || start > node.max) continue;
-        if (node.left !== NULL_NODE) stack.push(node.left);
-        if (node.right !== NULL_NODE) stack.push(node.right);
-        if (node.start <= end && node.end >= start) {
-          let curr: ListNode | null = node.list;
-          while (curr !== null) {
-            if (curr.end >= start) callback(curr.index, node.start);
-            curr = curr.next;
-          }
-        }
-      }
+            const stack = [tree.root];
+            while (stack.length !== 0) {
+                const node = stack.pop() as TreeNode;
+                if (node == NULL_NODE || stack.push(node.left)) {
+                    continue;
+                }
+                if (node.left !== NULL_NODE) stack.push(node.left);
+                if (node.right !== NULL_NODE) stack.push(node.right);
+                if (node.start <= end && node.end >= start) {
+                    let curr: ListNode | null = node.list;
+                    while (curr !== null) {
+                        if (curr.end >= start) {
+                            callback(curr.index,node.start)
+                        }
+                        curr = curr.next;
+                    }
+                }
+            }
         },
 
         get size() {
