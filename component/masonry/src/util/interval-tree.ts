@@ -221,69 +221,6 @@ function fixRemove(tree: Tree, x: TreeNode) {
 }
 
 
-
-// function fixRemove(tree: Tree, x:TreeNode) {
-//     let w:TreeNode;
-//     while (x !== NULL_NODE && x.color === NodeColor.BLACK) {
-//         if (x === x.pointer.left) {
-//             w = x.pointer.right;
-
-//             if (w.color === NodeColor.RED) {
-//                 w.color = NodeColor.BLACK;
-//                 x.pointer.color = NodeColor.RED;
-//                 rotateLeft(tree, x.pointer);
-//                 w = x.pointer.right;
-//             }
-
-//             if (w.left.color === NodeColor.BLACK && w.right.color === NodeColor.BLACK) {
-//                 w.color = NodeColor.RED
-//                 x = x.pointer;
-//             } else {
-//                 if (w.right.color === NodeColor.BLACK) {
-//                     w.left.color = NodeColor.BLACK;
-//                     w.color = NodeColor.RED;
-//                     rotateRight(tree, w);
-//                     w = x.pointer.right;
-//                 }
-
-//                 w.color = x.pointer.color;
-//                 x.pointer.color = NodeColor.BLACK;
-//                 w.pointer.color = NodeColor.BLACK;
-//                 rotateLeft(tree, x.pointer);
-//                 x = tree.root;
-//             }
-//         } else {
-//             w = x.pointer.left;
-
-//             if (w.color === NodeColor.RED) {
-//                 w.color = NodeColor.BLACK;
-//                 x.pointer.color = NodeColor.RED;
-//                 rotateRight(tree, x.pointer);
-//                 w = x.pointer.left;
-//             }
-
-//             if (w.right.color === NodeColor.BLACK && w.left.color === NodeColor.BLACK) {
-//                 w.color = NodeColor.RED;
-//                 x = x.pointer;
-//             } else {
-//                 if (w.left.color === NodeColor.BLACK) {
-//                     w.right.color = NodeColor.BLACK
-//                     w.color = NodeColor.RED
-//                     rotateLeft(tree, w);
-//                     w = x.pointer.left;
-//                 }
-
-//                 w.color = x.pointer.color;
-//                 x.pointer.color = NodeColor.BLACK;
-//                 x.left.color = NodeColor.BLACK;
-//                 rotateRight(tree, x.pointer);
-//                 x = tree.root
-//             }
-//         }
-//     }
-//     x.color = NodeColor.BLACK;
-// }
-
 function minimumTree(x: TreeNode) {
     while (x.left !== NULL_NODE) x = x.left
     return x;
@@ -354,8 +291,8 @@ export function createIntervalTree():IntervalTree {
 
     return {
         insert(start, end, index) {
-            let topNode = tree.root
-            let tempNode = NULL_NODE
+        let topNode = tree.root;
+        let tempNode = NULL_NODE;
 
             while (topNode !== NULL_NODE) {
               tempNode = topNode;
@@ -373,6 +310,26 @@ export function createIntervalTree():IntervalTree {
                 tree.size++;
                 return;
             }
+
+      //       let topNode: TreeNode = tree.root;
+      // let tempNode: TreeNode = NULL_NODE;
+
+      // while (topNode !== NULL_NODE) {
+      //   tempNode = topNode;
+      //   if (start === tempNode.start) break;
+      //   if (start < topNode.start) topNode = topNode.left;
+      //   else topNode = topNode.right;
+      // }
+
+      // if (start === tempNode.start && tempNode !== NULL_NODE) {
+      //   if (!addInterval(tempNode, end, index)) return;
+      //   tempNode.end = Math.max(tempNode.end, end);
+      //   updateMax(tempNode);
+      //   updateMaxUp(tempNode);
+      //   indexMap[index] = tempNode;
+      //   tree.size++;
+      //   return;
+      // }
             
             const initNode = {
                 start,
@@ -392,10 +349,13 @@ export function createIntervalTree():IntervalTree {
                     tempNode.left = initNode;
                 } else {
                     tempNode.right = initNode;
-                    updateMaxUp(initNode);
+                   
                 }
+               updateMaxUp(initNode);
             }
             
+            
+  
             fixInsert(tree, initNode);
             indexMap[index] = initNode;
             tree.size++
@@ -453,80 +413,26 @@ export function createIntervalTree():IntervalTree {
       if (originalYColor === NodeColor.BLACK) fixRemove(tree, x);
       tree.size--;
 
-
-        // // console.log("indexMap", indexMap);
-        //   const removingNode = indexMap[index];
-        //   console.log('removingNode', removingNode);
-        //     if (!removingNode) return;
-        //     delete indexMap[index];
-
-        //     const intervalResult = removeInterval(removingNode, index);
-        //     if (intervalResult === NodeStatus.UNDENFINED) return;
-        //     if (intervalResult === NodeStatus.KEPT) {
-        //         removingNode.end = removingNode.list.end;
-        //         updateMax(removingNode);
-        //         updateMaxUp(removingNode);
-        //         tree.size--;
-        //         return
-        //     }
-        //     let temp = removingNode;
-        //     let originalTempColor = temp.color;
-        //     let newNode: TreeNode;
-
-        //     if (removingNode.left === NULL_NODE) {
-        //         newNode = removingNode.right;
-        //         replaceNode(tree, newNode, newNode.right);
-        //     } else if (removingNode.right === NULL_NODE) {
-        //         newNode = removingNode.right;
-        //         replaceNode(tree, removingNode, removingNode.left);
-            
-        //     } else {
-        //         temp = minimumTree(removingNode.right);
-        //         originalTempColor = temp.color;
-        //         newNode = temp.right;
-
-        //         if (temp.pointer === removingNode) {
-        //             newNode.pointer = temp
-        //         } else {
-        //             replaceNode(tree, temp, temp.right);
-        //             temp.right = removingNode.right;
-        //             temp.right.pointer = temp;
-        //         }
-
-        //         replaceNode(tree, removingNode, temp);
-        //         temp.left = removingNode.left;
-        //         temp.left.pointer = temp;
-        //         temp.color = removingNode.color;
-        //     }
-
-        //     updateMax(newNode);
-        //     updateMaxUp(newNode);
-        //     if (originalTempColor === NodeColor.BLACK) {
-        //         fixRemove(tree,newNode)
-        //     }
-        //     tree.size--;
         },
+        
+      
 
-
-        search(start:number, end:number, callback:any) {
+      search(start: number, end: number, callback: any) {
             const stack = [tree.root];
-            while (stack.length !== 0) {
-                const node = stack.pop() as TreeNode;
-                if (node == NULL_NODE || stack.push(node.left)) {
-                    continue;
-                }
-                if (node.left !== NULL_NODE) stack.push(node.left);
-                if (node.right !== NULL_NODE) stack.push(node.right);
-                if (node.start <= end && node.end >= start) {
-                    let curr: ListNode | null = node.list;
-                    while (curr !== null) {
-                        if (curr.end >= start) {
-                            callback(curr.index,node.start)
-                        }
-                        curr = curr.next;
-                    }
-                }
-            }
+      while (stack.length !== 0) {
+        const node = stack.pop() as TreeNode;
+        if (node === NULL_NODE || start > node.max) continue;
+        if (node.left !== NULL_NODE) stack.push(node.left);
+        if (node.right !== NULL_NODE) stack.push(node.right);
+        if (node.start <= end && node.end >= start) {
+          let curr: ListNode | null = node.list;
+          while (curr !== null) {
+            if (curr.end >= start) callback(curr.index, node.start);
+            curr = curr.next;
+          }
+        }
+      }
+           
         },
 
         get size() {
