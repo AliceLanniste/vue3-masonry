@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { cardItem } from 'masonry' 
+import type { cardItem } from 'masonry' 
 import  data1  from "./data/data1.json"
 import   data2  from "./data/data2.json"
 import { Masonry } from "masonry";

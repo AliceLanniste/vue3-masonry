@@ -16,17 +16,23 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref ,watch} from 'vue';
 import { cardItem, masonryProps }  from './types'
+import { debounce } from '../util';
+import { useElementSize } from '@vueuse/core';
   
 defineSlots<{item(props:{item:cardItem,index:number}):any}>();
 const {
       gap,
-      column,
+      column ,
+    itemMinWidth = 220,
+    minColumn =2,
+      maxColumn,
       pageSize, 
        request} = defineProps<masonryProps>();
 const cardList = ref<cardItem[]>([]);
-const containerRef  =ref<HTMLDivElement | null> (null);
+const containerRef = ref<HTMLDivElement | null>(null);
+const { width: contentWidth } = useElementSize(containerRef)
 const state = reactive({
   isFinish: false,
   isLoading:false,
@@ -36,8 +42,9 @@ const state = reactive({
   columnHeight:Array(column).fill(0),
   minHeight:-1
 })
-  
-const getCardList = async (page:number,pageSize:number) =>{
+
+const resizeObserver = new ResizeObserver(() => handleResize())
+const getCardList = async (page :number ,pageSize :number) =>{
   if(state.isFinish) return
    state.isLoading = true;
    const resList =  await request(page,pageSize)
@@ -46,14 +53,13 @@ const getCardList = async (page:number,pageSize:number) =>{
      state.isFinish = true
      return;
    };
-   const preCardList =[...cardList.value,...resList]
-    const compedCardList = computedCardPos(preCardList);
-   cardList.value = compedCardList;
+   cardList.value = [...cardList.value,...resList];
+    computedCardPos(resList);
    state.isLoading = false;
 }
 
 const handleScroll = rafThrottle(() => {
-  const {scrollTop ,clientHeight}  = containerRef.value!;
+  const { scrollTop, clientHeight } = containerRef.value!;
   if (scrollTop + clientHeight >= state.minHeight) {
     !state.isLoading && getCardList(state.page, pageSize);
   }
@@ -71,66 +77,74 @@ function rafThrottle(fn: Function) {
   }
 }
 
-//container.clientWidth -gap *(column-1)
+
+const columnCount = computed(() => {
+  let containerWidth = contentWidth.value
+  if (containerWidth >= itemMinWidth*2) {
+    let count = Math.ceil(containerWidth / itemMinWidth);
+    if (maxColumn && count > maxColumn) {
+      return maxColumn;
+    }
+    return count;  
+  }
+  return minColumn;
+})
+
+
 const compCardWith = () =>{
   if (containerRef.value) {
+    let column = columnCount.value;
     let width = (containerRef.value.clientWidth -gap*(column-1)) / column
     state.cardWidth = width;
+    state.columnHeight = new Array(column).fill(0)
   }
 }
 
-function computedCardPos(imgList: cardItem[]): cardItem[] {
-  const cardList = imgList.map((item) => {
-      
-    
-      item.height = compCardHeight(item,item.width)
-      item.width = state.cardWidth;
-      return item;
-   }).map((item, index) => {
-      if(index < column) {
-         item.x = index ?index * (state.cardWidth + gap) : 0,
-         item.y = 0
-         state.columnHeight[index] =item.height+gap;
-      } else {
-         const {minIndex, minHeight} = getShortestColumn(state.columnHeight);
-         item.x = minIndex ? minIndex * (state.cardWidth + gap) : 0,
-         item.y = minHeight +gap;
-         state.columnHeight[minIndex] += item.height +gap;
-      }
-      return item;
-   })
 
-   return cardList;
+watch(()=>columnCount,
+()=>handleResize())
+
+function computedCardPos(imgList: cardItem[]) {
+  imgList.forEach((item) => {
+    let height = compCardHeight(item, item.width!);
+    let width = state.cardWidth;
+     item.height = height
+    item.width = width
+    const { minIndex } = getShortestColumn(state.columnHeight);
+    item.x = minIndex * (state.cardWidth + gap);
+    item.y = state.columnHeight[minIndex];
+     state.columnHeight[minIndex] += item.height +gap;
+  })
 }
 //compute minest height column
-const getShortestColumn =(heightColumns:number[]):{minIndex: number, minHeight: number} =>{
-   let minIndex = -1,minHeight = Infinity;
-    heightColumns.forEach((height ,index) =>{
-        if(height < minHeight){
-          minHeight = height;
-          minIndex = index
-        }
-    })
-    state.minHeight = minHeight;
-    return {
-        minIndex,
-        minHeight
-    }
+const getShortestColumn = (heightColumns: number[]): { minIndex: number } => {
+  return { minIndex: heightColumns.indexOf(Math.min(...heightColumns)) }
 }
 
 const compCardHeight =(card: cardItem,width: number) => {
-  const cardHeight = Math.floor((card.height * state.cardWidth) / width);
+  const cardHeight = Math.floor((card.height! * state.cardWidth) / width);
   return cardHeight;
 }
+
+
+const handleResize = debounce(() => {
+  const containerWidth = contentWidth.value;
+  let column = columnCount.value;
+  state.cardWidth = (containerWidth - gap * (column - 1)) / column;
+  state.columnHeight = new Array(column).fill(0);
+  computedCardPos(cardList.value);
+});
 
 const init =() =>{
    if (containerRef.value) {
       compCardWith();
-      getCardList(state.page,pageSize);
+     getCardList(state.page, pageSize);
+    resizeObserver.observe(containerRef.value);
    }
 }
 
 onMounted(() => init())
+onUnmounted(()=> containerRef.value && resizeObserver.unobserve(containerRef.value))
 </script>
 
 <style lang="less" scoped>
