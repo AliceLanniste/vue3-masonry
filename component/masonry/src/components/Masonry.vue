@@ -12,16 +12,25 @@
         </div>
 
       </div>
+      <div class="masonry-loading"  v-show="state.isLoading"
+         :style="{
+        transform: `translate(0px, ${state.scrollHeight}px)`,
+       }">
+        <slot name="loading">loading... </slot>
+      </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref ,watch} from 'vue';
 import { cardItem, masonryProps }  from './types'
-import { debounce } from '../util';
+import { debounce } from '../util/index';
 import { useElementSize } from '@vueuse/core';
+
   
-defineSlots<{item(props:{item:cardItem,index:number}):any}>();
+defineSlots<{
+  item(props: { item: cardItem, index: number }): any,
+  loading():any }>();
 const {
       gap,
       column ,
@@ -40,17 +49,19 @@ const state = reactive({
   page:1,
   bottom:10,
   columnHeight:Array(column).fill(0),
-  minHeight:-1
+  minHeight: -1,
+  scrollHeight:0
 })
 
 const resizeObserver = new ResizeObserver(() => handleResize())
 const getCardList = async (page :number ,pageSize :number) =>{
-  if(state.isFinish) return
-   state.isLoading = true;
+  if (state.isFinish) return
+  state.isLoading = true;
    const resList =  await request(page,pageSize)
    state.page++
    if(!resList.length) {
      state.isFinish = true
+     state.isLoading = false
      return;
    };
    cardList.value = [...cardList.value,...resList];
@@ -61,6 +72,7 @@ const getCardList = async (page :number ,pageSize :number) =>{
 const handleScroll = rafThrottle(() => {
   const { scrollTop, clientHeight } = containerRef.value!;
   if (scrollTop + clientHeight >= state.minHeight) {
+    state.scrollHeight = scrollTop;
     !state.isLoading && getCardList(state.page, pageSize);
   }
 })
@@ -149,7 +161,8 @@ onUnmounted(()=> containerRef.value && resizeObserver.unobserve(containerRef.val
 
 <style lang="less" scoped>
 .masonry-container {
-  width: 100%;
+  position: relative;
+    width: 100%;
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -166,5 +179,18 @@ onUnmounted(()=> containerRef.value && resizeObserver.unobserve(containerRef.val
     top: 0;
     box-sizing: border-box;
     transition: all 0.3s;
+}
+
+.masonry-loading {
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  // height: 50px;
+  // background-color: #f5f5f5;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 6px;
+    z-index: 999;
 }
 </style>
