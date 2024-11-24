@@ -14,6 +14,8 @@ export interface masonryProps {
     itemMinWidth?: number;
     minColumn?: number;
     maxColumn?: number;
+    showLoading?: boolean;
+    showFinish?: boolean;
     request:(page:number,pageSize:number) => Promise<cardItem[]>
 }
 

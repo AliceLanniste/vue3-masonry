@@ -12,17 +12,22 @@
         </div>
 
       </div>
-      <div class="masonry-loading"  v-show="state.isLoading"
+      <div class="masonry-loading" v-if="showLoading" v-show="state.isLoading"
          :style="{
         transform: `translate(0px, ${state.scrollHeight}px)`,
        }">
         <slot name="loading">loading... </slot>
       </div>
+
+      <div class="masonry-finished"  v-if="showFinish" v-show="state.isFinish" ref="finishRef"
+         >
+        <slot name="finished">到底了 </slot>
+      </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref ,watch} from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref ,watch} from 'vue';
 import { cardItem, masonryProps }  from './types'
 import { debounce } from '../util/index';
 import { useElementSize } from '@vueuse/core';
@@ -30,17 +35,22 @@ import { useElementSize } from '@vueuse/core';
   
 defineSlots<{
   item(props: { item: cardItem, index: number }): any,
-  loading():any }>();
+  loading(): any,
+  finished():any}>();
 const {
       gap,
       column ,
-    itemMinWidth = 220,
-    minColumn =2,
+      itemMinWidth = 220,
+      minColumn =2,
       maxColumn,
       pageSize, 
-       request} = defineProps<masonryProps>();
+      showFinish= true,
+      showLoading = true,
+      request } = defineProps<masonryProps>();
+      
 const cardList = ref<cardItem[]>([]);
 const containerRef = ref<HTMLDivElement | null>(null);
+const finishRef = ref<HTMLDivElement>();
 const { width: contentWidth } = useElementSize(containerRef)
 const state = reactive({
   isFinish: false,
@@ -53,13 +63,23 @@ const state = reactive({
   scrollHeight:0
 })
 
+watch(() => state.isFinish, async() => {
+  let maxHeight = Math.max(...state.columnHeight)
+  await nextTick();
+  if(!finishRef.value) return
+  finishRef.value.style.top = `${maxHeight}px`;
+    console.log("finishRef",finishRef.value?.style)
+
+
+})
 const resizeObserver = new ResizeObserver(() => handleResize())
 const getCardList = async (page :number ,pageSize :number) =>{
   if (state.isFinish) return
   state.isLoading = true;
    const resList =  await request(page,pageSize)
    state.page++
-   if(!resList.length) {
+  if (!resList.length) {
+    console.log("isFinish")
      state.isFinish = true
      state.isLoading = false
      return;
@@ -166,6 +186,7 @@ onUnmounted(()=> containerRef.value && resizeObserver.unobserve(containerRef.val
     height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
+    padding-bottom: 5px;
 }
 
 .masonry-list {
@@ -182,15 +203,20 @@ onUnmounted(()=> containerRef.value && resizeObserver.unobserve(containerRef.val
 }
 
 .masonry-loading {
-  // display: flex;
-  // justify-content: center;
-  // align-items: center;
-  // height: 50px;
-  // background-color: #f5f5f5;
+ 
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     bottom: 6px;
     z-index: 999;
+}
+
+.masonry-finished {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 4px;
+    z-index: 999;
+
 }
 </style>
