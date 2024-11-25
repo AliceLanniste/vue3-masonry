@@ -1,6 +1,8 @@
 export interface cardItem {
     width?:number;
-    height?: number;
+    imageHeight?: number;
+    footerHeight?: number;
+    totalHeight?: number;
     x: number;
     y: number;
     [key: string]: any;

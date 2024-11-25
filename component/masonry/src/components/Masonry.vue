@@ -1,14 +1,14 @@
 <template>
   <div class="masonry-container" ref="containerRef" @scroll="handleScroll">
-    <div class="masonry-list">
+    <div class="masonry-list" ref="listRef">
       <div class="masonry-item"
        v-for="(item,index) in cardList" :key="index"
        :style="{
         width:`${item.width}px`,
-        height:`${item.height}px`,
+        height:`${item.totalHeight}px`,
         transform: `translate(${item.x}px, ${item.y}px)`,
        }">
-          <slot name="item" :item="item" :index="index"></slot>
+          <slot name="item" :item="item" :index="index" :imageHeight="item.imageHeight"></slot>
         </div>
 
       </div>
@@ -31,10 +31,11 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref ,watch} from 
 import { cardItem, masonryProps }  from './types'
 import { debounce } from '../util/index';
 import { useElementSize } from '@vueuse/core';
+import { it } from 'node:test';
 
   
 defineSlots<{
-  item(props: { item: cardItem, index: number }): any,
+  item(props: { item: cardItem, index: number,imageHeight:number|undefined }): any,
   loading(): any,
   finished():any}>();
 const {
@@ -50,6 +51,7 @@ const {
       
 const cardList = ref<cardItem[]>([]);
 const containerRef = ref<HTMLDivElement | null>(null);
+const listRef = ref<HTMLDivElement>();
 const finishRef = ref<HTMLDivElement>();
 const { width: contentWidth } = useElementSize(containerRef)
 const state = reactive({
@@ -60,7 +62,8 @@ const state = reactive({
   bottom:10,
   columnHeight:Array(column).fill(0),
   minHeight: -1,
-  scrollHeight:0
+  scrollHeight: 0,
+  targetIndex: 0,
 })
 
 watch(() => state.isFinish, async() => {
@@ -79,13 +82,12 @@ const getCardList = async (page :number ,pageSize :number) =>{
    const resList =  await request(page,pageSize)
    state.page++
   if (!resList.length) {
-    console.log("isFinish")
      state.isFinish = true
      state.isLoading = false
      return;
    };
    cardList.value = [...cardList.value,...resList];
-    computedCardPos(resList);
+   await computedCardPos(resList);
    state.isLoading = false;
 }
 
@@ -136,17 +138,35 @@ const compCardWith = () =>{
 watch(()=>columnCount,
 ()=>handleResize())
 
-function computedCardPos(imgList: cardItem[]) {
+async function computedCardPos(imgList: cardItem[]) {
+  
+  setImageHeight(imgList);
+  await nextTick();
+  computeDomHeight(imgList)
+
+}
+
+function setImageHeight(imgList: cardItem[]) {
   imgList.forEach((item) => {
     let height = compCardHeight(item, item.width!);
     let width = state.cardWidth;
-     item.height = height
+    item.imageHeight = height
     item.width = width
+  })
+}
+
+function computeDomHeight(list: cardItem[]) {
+  const children = listRef.value!.children;
+  list.forEach((item, index) => {
+    const nextIndex = state.targetIndex + index;
+    const cardHeight = children[nextIndex].getBoundingClientRect().height;
+    item.totalHeight = cardHeight
     const { minIndex } = getShortestColumn(state.columnHeight);
     item.x = minIndex * (state.cardWidth + gap);
     item.y = state.columnHeight[minIndex];
-     state.columnHeight[minIndex] += item.height +gap;
+     state.columnHeight[minIndex] += cardHeight +gap;
   })
+  state.targetIndex += list.length
 }
 //compute minest height column
 const getShortestColumn = (heightColumns: number[]): { minIndex: number } => {
@@ -162,6 +182,7 @@ const compCardHeight =(card: cardItem,width: number) => {
 const handleResize = debounce(() => {
   const containerWidth = contentWidth.value;
   let column = columnCount.value;
+  state.targetIndex = 0;
   state.cardWidth = (containerWidth - gap * (column - 1)) / column;
   state.columnHeight = new Array(column).fill(0);
   computedCardPos(cardList.value);
