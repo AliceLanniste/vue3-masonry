@@ -17,10 +17,11 @@
 import { CSSProperties, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import type {   columnQueue, renderItem, itemRect, cardItem, masonryProps } from "./types";
 import { debounce } from "../util/index";
-
+import { useElementSize } from '@vueuse/core'
 const {
       gap,
-      column ,
+      column,
+      itemMinWidth,
       pageSize, 
       request } = defineProps<masonryProps>();
 defineSlots<{
@@ -29,6 +30,7 @@ defineSlots<{
 
 const containerRef = ref<HTMLDivElement | null>(null);
 
+const { width:containerWidth, height:containerHeight } = useElementSize(containerRef)
 const resizeObserver = new ResizeObserver(() => {
   handleResize();
 });
@@ -46,14 +48,29 @@ const scrollState = reactive({
   start: 0,
 });
 
+// const computedColumn = computed(() => {
+//   let minWidth = itemMinWidth || 200;
+//   let columnCount = column || Math.floor(scrollState.viewWidth / (minWidth + gap)) || 2;
+//   console.log("computedColumn", columnCount);
+//   return columnCount;
+// });
+
+const computedColumn = ref(2);
+const getColumn = () => {
+  let minWidth = itemMinWidth || 200;
+  let columnCount = column || Math.floor(scrollState.viewWidth / (minWidth + gap)) || 2;
+  console.log("computedColumn",scrollState.viewWidth,minWidth, columnCount);
+  return columnCount;
+};
+
 const queueState = reactive({
-  queue: new Array(column).fill(0).map<columnQueue>(() => ({ list: [], height: 0 })),
+  queue: new Array(computedColumn.value).fill(0).map<columnQueue>(() => ({ list: [], height: 0 })),
   len: 0,
 });
 
 const itemSizeInfo = computed(() =>
   dataState.list.reduce<Map<cardItem["id"], itemRect>>((pre, current) => {
-    const itemWidth = Math.floor((scrollState.viewWidth - (column - 1) * gap) / column);
+    const itemWidth = Math.floor((scrollState.viewWidth - (computedColumn.value - 1) * gap) / computedColumn.value);
     pre.set(current.id, {
       width: itemWidth,
       height: Math.floor((itemWidth * current.imageHeight!) / current.width!),
@@ -86,12 +103,6 @@ const computedHeight = computed(() => {
 
 const listStyle = computed(() => ({ height: `${computedHeight.value.maxHeight}px` } as CSSProperties));
 
-watch(
-  () => column,
-  () => {
-    handleResize();
-  }
-);
 
 const addInQueue = (size = pageSize) => {
   for (let i = 0; i < size; i++) {
@@ -162,23 +173,26 @@ function rafThrottle(fn: Function) {
 }
 const handleResize = debounce(() => {
   initScrollState();
+  computedColumn.value = getColumn();
   reComputedQueue();
 }, 300);
 
 const reComputedQueue = () => {
-  queueState.queue = new Array(column).fill(0).map<columnQueue>(() => ({ list: [], height: 0 }));
+  queueState.queue = new Array(computedColumn.value).fill(0).map<columnQueue>(() => ({ list: [], height: 0 }));
   queueState.len = 0;
   addInQueue(dataState.list.length);
 };
 
+
 const initScrollState = () => {
-  scrollState.viewWidth = containerRef.value!.clientWidth;
-  scrollState.viewHeight = containerRef.value!.clientHeight;
+  scrollState.viewWidth = containerWidth.value;
+  scrollState.viewHeight = containerHeight.value;
   scrollState.start = containerRef.value!.scrollTop;
 };
 
 const init = async () => {
   initScrollState();
+  computedColumn.value = getColumn();
   resizeObserver.observe(containerRef.value!);
   const len = await loadDataList();
   len && addInQueue(len);

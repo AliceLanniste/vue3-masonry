@@ -14,7 +14,7 @@ export interface cardItem {
 
 export interface masonryProps {
     gap: number;
-    column: number;
+    column?: number;
     pageSize: number;
     itemMinWidth?: number;
     minColumn?: number;
