@@ -14,7 +14,7 @@
 
 
 <script lang="ts" setup>
-import { CSSProperties, computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { CSSProperties, computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import type {   columnQueue, renderItem, itemRect, cardItem, masonryProps } from "./types";
 import { debounce } from "../util/index";
 import { useElementSize } from '@vueuse/core'
@@ -48,18 +48,11 @@ const scrollState = reactive({
   start: 0,
 });
 
-// const computedColumn = computed(() => {
-//   let minWidth = itemMinWidth || 200;
-//   let columnCount = column || Math.floor(scrollState.viewWidth / (minWidth + gap)) || 2;
-//   console.log("computedColumn", columnCount);
-//   return columnCount;
-// });
 
-const computedColumn = ref(2);
+const computedColumn = ref(0);
 const getColumn = () => {
   let minWidth = itemMinWidth || 200;
   let columnCount = column || Math.floor(scrollState.viewWidth / (minWidth + gap)) || 2;
-  console.log("computedColumn",scrollState.viewWidth,minWidth, columnCount);
   return columnCount;
 };
 
